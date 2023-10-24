@@ -1,20 +1,26 @@
 ﻿// Copyright (c) 2023 Tiago Marino Silva
 
-
 #include "Chef.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
-
+#include "GameFramework/CharacterMovementComponent.h"
 
 AChef::AChef(): InputMapping(nullptr), InputActionMove(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = true;
+	
+	UCharacterMovementComponent* const CharacterMovementComponent = GetCharacterMovement();
+	CharacterMovementComponent->SetMovementMode(MOVE_Walking);
+	CharacterMovementComponent->bOrientRotationToMovement = true;
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 }
 
 void AChef::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AChef::Tick(float DeltaTime)
@@ -40,29 +46,16 @@ void AChef::Move(const FInputActionValue& InputValue)
 		return;
 	
 	const FVector2D MoveValue = InputValue.Get<FVector2D>();
-	const FRotator MovementRotation(0, Controller->GetControlRotation().Yaw, 0);
- 
-	MoveVertically(MoveValue.Y, MovementRotation);
-	MoveHorizontally(MoveValue.X, MovementRotation);
-}
 
-void AChef::MoveVertically(const double MoveValue, const FRotator& MovementRotation)
-{
-	if (MoveValue != 0.f)
+	if (MoveValue.Y != 0.f)
 	{
-		const FVector Direction = MovementRotation.RotateVector(FVector::ForwardVector);
- 
-		AddMovementInput(Direction, MoveValue);
+		const FVector Direction = FVector::ForwardVector;
+		AddMovementInput(Direction, MoveValue.Y);
 	}
-}
-
-void AChef::MoveHorizontally(const double MoveValue, const FRotator& MovementRotation)
-{
-	if (MoveValue != 0.f)
-	{
-		const FVector Direction = MovementRotation.RotateVector(FVector::RightVector);
 	
-		AddMovementInput(Direction, MoveValue);
+	if (MoveValue.X != 0.f)
+	{
+		const FVector Direction = FVector::RightVector;
+		AddMovementInput(Direction, MoveValue.X);
 	}
 }
-

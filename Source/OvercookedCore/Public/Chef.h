@@ -28,10 +28,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enhanced Input")
 	class UInputMappingContext* InputMapping;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enhanced Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input Actions")
 	UInputAction* InputActionMove;
-
-private:
-	void MoveVertically(const double MoveValue, const FRotator& MovementRotation);
-	void MoveHorizontally(const double MoveValue, const FRotator& MovementRotation);
 };
