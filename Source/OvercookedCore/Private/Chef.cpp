@@ -12,7 +12,7 @@ AChef::AChef(): InputMapping(nullptr), InputActionMove(nullptr)
 	UCharacterMovementComponent* const CharacterMovementComponent = GetCharacterMovement();
 	CharacterMovementComponent->SetMovementMode(MOVE_Walking);
 	CharacterMovementComponent->bOrientRotationToMovement = true;
-
+	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
