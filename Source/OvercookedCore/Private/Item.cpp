@@ -6,7 +6,9 @@
 AItem::AItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
+	SetReplicates(true);
+	SetReplicatingMovement(true);
+	
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 }
 

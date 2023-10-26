@@ -39,17 +39,33 @@ void AChef::SearchAndGrabItem()
 		AItem* Item = Cast<AItem>(OverlappingItems[0]);
 		if (CanGrab(Item))
 		{
-			HandleGrab(Item);
+			ServerHandleGrab(Item);
 		}
 		else if (Item == HeldItem)
 		{
-			Release();
+			ServerReleaseItem();
 		}
 	}
 	else
 	{
-		Release();
+		ServerReleaseItem();
 	}
+}
+
+void AChef::ServerReleaseItem_Implementation()
+{
+	MulticastReleaseItem();
+}
+
+void AChef::MulticastReleaseItem_Implementation()
+{
+	if (!HeldItem)
+	{
+		return;
+	}
+
+	HeldItem->Release();
+	HeldItem = nullptr;
 }
 
 void AChef::Tick(float DeltaTime)
@@ -95,19 +111,18 @@ bool AChef::CanGrab(AItem* Item) const
 	return !HeldItem;
 }
 
-void AChef::HandleGrab(AItem* Item)
+void AChef::ServerHandleGrab_Implementation(AItem* Item)
 {
-	HeldItem = Item;
-	HeldItem->Grab(GetMesh(), ItemSocketName);
-}
-
-void AChef::Release()
-{
-	if (!HeldItem)
+	if (!HasAuthority())
 	{
 		return;
 	}
+	
+	MulticastHandleGrab(Item);
+}
 
-	HeldItem->Release();
-	HeldItem = nullptr;
+void AChef::MulticastHandleGrab_Implementation(AItem* Item)
+{
+	HeldItem = Item;
+	HeldItem->Grab(GetMesh(), ItemSocketName);
 }

@@ -21,10 +21,22 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void SearchAndGrabItem();
+
 	virtual void Move(const FInputActionValue& InputValue);
+
 	virtual bool CanGrab(AItem* Item) const;
-	virtual void HandleGrab(AItem* Item);
-	virtual void Release();
+
+	UFUNCTION(Server, Reliable)
+	virtual void ServerHandleGrab(AItem* Item);
+
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void MulticastHandleGrab(AItem* Item);
+
+	UFUNCTION(Server, Reliable)
+	virtual void ServerReleaseItem();
+
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void MulticastReleaseItem();
 
 public:
 	virtual void Tick(float DeltaTime) override;
