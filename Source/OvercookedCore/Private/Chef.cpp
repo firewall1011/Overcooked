@@ -3,6 +3,7 @@
 #include "Chef.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AChef::AChef(): InputMapping(nullptr), InputActionMove(nullptr)
@@ -23,6 +24,50 @@ void AChef::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AChef::SearchAndGrabItem()
+{
+	TArray<AActor*> OverlappingItems;
+	const TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	const TArray<AActor*> ActorsToIgnore;
+
+	const bool bHasOverlapItem = UKismetSystemLibrary::SphereOverlapActors(
+		GetWorld(),GetActorLocation(), 100.f,
+		ObjectTypes, AItem::StaticClass(), ActorsToIgnore, OverlappingItems);
+
+	if (bHasOverlapItem)
+	{
+		AItem* Item = Cast<AItem>(OverlappingItems[0]);
+		if (CanGrab(Item))
+		{
+			ServerHandleGrab(Item);
+		}
+		else if (Item == HeldItem)
+		{
+			ServerReleaseItem();
+		}
+	}
+	else
+	{
+		ServerReleaseItem();
+	}
+}
+
+void AChef::ServerReleaseItem_Implementation()
+{
+	MulticastReleaseItem();
+}
+
+void AChef::MulticastReleaseItem_Implementation()
+{
+	if (!HeldItem)
+	{
+		return;
+	}
+
+	HeldItem->Release();
+	HeldItem = nullptr;
+}
+
 void AChef::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -38,6 +83,7 @@ void AChef::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	Input->BindAction(InputActionMove, ETriggerEvent::Triggered, this, &AChef::Move);
+	Input->BindAction(InputActionGrab, ETriggerEvent::Triggered, this, &AChef::SearchAndGrabItem);
 }
 
 void AChef::Move(const FInputActionValue& InputValue)
@@ -58,4 +104,25 @@ void AChef::Move(const FInputActionValue& InputValue)
 		const FVector Direction = FVector::RightVector;
 		AddMovementInput(Direction, MoveValue.X);
 	}
+}
+
+bool AChef::CanGrab(AItem* Item) const
+{
+	return !HeldItem;
+}
+
+void AChef::ServerHandleGrab_Implementation(AItem* Item)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	MulticastHandleGrab(Item);
+}
+
+void AChef::MulticastHandleGrab_Implementation(AItem* Item)
+{
+	HeldItem = Item;
+	HeldItem->Grab(GetMesh(), ItemSocketName);
 }
